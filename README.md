@@ -29,7 +29,7 @@ Include the `fingerprint.min.js` somewhere on your page (in the `<head>` section
 <script src="fingerprint.min.js"></script>
 ```
 
-Update your Google Analytics code:
+Update your Google Analytics (GA) code:
 ```
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -38,8 +38,8 @@ Update your Google Analytics code:
   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
   ga('create', 'UA-XXXXXXX-XX', {
-    'clientId': new Fingerprint().get(),
-    'storage': 'none'
+    'storage': 'none',
+    'clientId': new Fingerprint().get()
   });
   ga('set', 'anonymizeIp', true);
   ga('send', 'pageview');
@@ -47,7 +47,9 @@ Update your Google Analytics code:
 </script>
 ```
 
-In the above code, you need to update the Tracking ID `UA-XXXXXXX-XX`. We instruct GA to not use cookies, by setting `storage` to `none`. Next, we create a unique visitor fingerprint as the `clientId`. Additionally, we are instructing Google to anonymise visitors IP address using the `anonymizeIp` option. Finally, we send a pageview to GA.
+In the above code, you need to update it using your Tracking ID `UA-XXXXXXX-XX` from your GA property settings.
+
+So what's going on here? First, we instruct GA to not use cookies, by setting `storage` to `none`. Next, we create a unique visitor fingerprint as the `clientId`. Additionally, we are instructing Google to anonymise visitors IP address using the `anonymizeIp` option. Finally, we send a pageview to GA.
 
 If you use this implementation on your site, please let us know! We are looking for people who are willing to test it and compare with their previous GA stats in order to check the accuracy of measurements.
 
