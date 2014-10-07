@@ -1,14 +1,8 @@
-<p align="center">
-<h2>fingerprintjs</h2>
-<br/>
-<a href="https://travis-ci.org/Valve/fingerprintjs"><img src="http://img.shields.io/travis/Valve/fingerprintjs/master.svg?style=flat" /></a>
-<a href="https://gitter.im/Valve/fingerprintjs"><img src="https://badges.gitter.im/Valve/fingerprintjs.png"/></a>
-</p>
+## Cookieless Google Analytics
 
-Fast browser fingerprint library. Written in pure JavaScript, no dependencies. 
-By default uses [Murmur hashing][murmur] and returns a 32bit integer number.
-Hashing function can be easily replaced.
-Feather weight: only **1.2** KB when gzipped.
+On 26 May 2011 EU introduced a law that requires websites to implement a cookie opt-in mechanism, effectively meaning that the consumer must give his or her consent before cookies or any other form of data is stored in their browser [[1]](https://en.wikipedia.org/wiki/Directive_on_Privacy_and_Electronic_Communications#Cookies). This law especially targets 3rd-party tracking cookies, like those of Google Analytics. As a result, many EU websites nowadays are covered in opt-in or "implied consent" banners, popups and all sorts of nightmares.
+
+However, if your Google Analytics use case only requires visitor tracking for statistical purposes, and not individual targeting, there is an easy and elegant solution to not use cookies and get rid of the nasty popups. This cookieless implementation of Google Analytics was created by [Foture](https://www.foture.net) and is using fingerprinting algorithm created by Valve in [Fingerprintjs](https://github.com/Valve/fingerprintjs).
 
 ## What is fingerprinting?
 
@@ -27,158 +21,48 @@ It's worth noting that a mobile share of browsers is much more uniform, so finge
 only as a supplementary identifying mechanism there.
 
 [Read more](http://valve.github.io/blog/2013/07/14/anonymous-browser-fingerprinting/)
-or
-[discuss on reddit](http://redd.it/1ic6ew)
 
+## Implementation
 
-## Installation
-
-### Bower
-
+Include the `fingerprint.min.js` somewhere on your page (in the `<head>` section, or before the closing `</body>`):
 `
-bower install fingerprint
+<script defer src="fingerprint.min.js"></script>
 `
 
-### NPM
-
+Update your Google Analytics code:
 `
-npm install fingerprintjs
-`
-_note the trailing *js* in the name_
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-### Ruby-on-Rails
+  ga('create', 'UA-XXXXXXX-XX', {
+    'clientId': new Fingerprint().get(),
+    'storage': 'none'
+  });
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
 
-If you're on Rails, add this to your Gemfile
-
-`
-gem 'fingerprintjs-rails'
-`
-and 
-
-`bundle install`
-
-After that you can add the file to sprockets:
-
-`
-//= require fingerprint
+</script>
 `
 
-### Manual
+In the above code, you need to update the Tracking ID `UA-XXXXXXX-XX`. We instruct GA to not use cookies, by setting `storage` to `none`. Next, we create a unique visitor fingerprint as the `clientId`. Additionally, we are instructing Google to anonymise visitors IP address using the `anonymizeIp` option. Finally, we send a pageview to GA.
 
-Just copy the `fingerprint.js` file to your js directory.
+If you use this implementation on your site, please let us know! We are looking for people who are willing to test it and compare with their previous GA stats in order to check the accuracy of measurements.
 
-## Usage
-
-```javascript
-var fingerprint = new Fingerprint().get();
-```
-
-If you want to use [canvas fingerprinting][canvas_research] pass the `canvas: true` option
-```javascript
-var fingerprint = new Fingerprint({canvas: true}).get();
-```
-According to the above Pixel Perfect research, it should further increase the accuracy of
-fingerprinting.
-
-*Note for IE9:* in order to use the canvas fingerprinting on IE9, the html must have a valid
-html5 declaration:
-
-```
-<!DOCTYPE html>
-```
-
-
-If you want to use the screen resolution in calculating the fingerprint,  pass the `screen_resolution: true` option
-```javascript
-var fingerprint = new Fingerprint({screen_resolution: true}).get();
-```
-
-### Incognito mode (Chrome) or Private mode (Firefox)
-
-Fingerprint generates identical output in regular and private modes, i.e. the reporting will identify a private mode browser as usual.
-
-
-### IE 6, IE 7, IE 8, IE 9, IE 10, IE 11
-
-Detecting the plugins information is very important in building the fingerprint.
-
-In IE (surprise) it is not possible to just query the list of plugins, their mime types, etc.
-Instead, one must use special probing code to detect each individual plugin, because
-all plugins are ActiveX controls in IE.
-
-If you want to query the IE plugins info to further diversify the fingerprinting process, pass the `ie_activex: true` option.
-
-This will detect following plugins:
-
-- Adobe Reader
-- Adobe Flash Player
-- Apple QuickTime
-- Real player (all versions)
-- Shockwave player
-- Windows Media Player
-- Microsoft Silverlight
-- Skype ClickToCall
-
-Note that this process is safe for other browsers, and the `ie_activex` options will be ignored.
-
-
-### Using custom hashing function
-
-``` javascript
-var my_hasher = new function(value, seed){ return value.length % seed; };
-var fingerprint = new Fingerprint({hasher: my_hasher}).get();
-```
-or pass the hashing function as is:
-
-``` javascript
-var my_hasher = new function(value, seed){ return value.length % seed; };
-var fingerprint = new Fingerprint(my_hasher).get();
-```
-
-## Running specs
-
-Running specs manually is just opening the `specs/test_runner.html`
-
-
-Running specs from the command line or in CI requires [phantomjs][phantomjs] in your `PATH`
-
-```
-cd specs
-
-phantomjs lib/phantom-jasmine/run_jasmine_test.coffee test_runner.html
-```
-
-The example is in `run.sh` file.
-
-## Building
-
-To build the project, run `grunt` command. This will run the jshint and uglify the code into `build/fingerprint.min.js`.
-Running specs with grunt is not implemented but is on my todo list.
-
-### Manual minification
-
-To minify the file I recommend using [uglifyjs][uglifyjs](requires node.js)
-If you don't have it installed, install it with:
-
-```
-npm -g install uglify-js
-```
-
-Then run the minification with:
-
-```
-uglifyjs fingerprint.js > fingerprint.min.js -mc
-```
-
-`-mc` tells uglifier to (m)angle and (c)ompress the input code.
-
-If you don't have node.js installed on your machine, you can create a minified version of the library with
-online services, such as [Google Closure compiler][closure]
+We are successfully using this Cookieless Google Analytics on our websites:
++ [BrightFuture.pl](https://www.brightfuture.pl)
++ [Foture.net](https://www.foture.net)
 
 
 ### Licence
 
-This code is [MIT][mit] licenced:
+Cookieless implementation of Google Analytics using Fingerprintjs is [MIT][mit] licenced:
+
+Copyright (c) 2014 Foture.net
+
+Original Fingerprintjs code is [MIT][mit] licenced:
 
 Copyright (c) 2013 Valentin Vasilyev
 
@@ -189,9 +73,4 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [mit]: http://www.opensource.org/licenses/mit-license.php
-[murmur]: http://en.wikipedia.org/wiki/MurmurHash
 [research]: https://panopticlick.eff.org/browser-uniqueness.pdf
-[phantomjs]: http://phantomjs.org/
-[uglifyjs]: https://github.com/mishoo/UglifyJS
-[closure]: http://closure-compiler.appspot.com
-[canvas_research]: http://cseweb.ucsd.edu/~hovav/dist/canvas.pdf
