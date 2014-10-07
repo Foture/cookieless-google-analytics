@@ -26,7 +26,7 @@ only as a supplementary identifying mechanism there.
 
 Include the `fingerprint.min.js` somewhere on your page (in the `<head>` section, or before the closing `</body>`):
 ```
-<script defer src="fingerprint.min.js"></script>
+<script src="fingerprint.min.js"></script>
 ```
 
 Update your Google Analytics code:
