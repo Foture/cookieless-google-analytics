@@ -1,5 +1,5 @@
 /*
-* fingerprintJS 0.5.4 - Fast browser fingerprint library
+* fingerprintJS 0.5.5 - Fast browser fingerprint library
 * https://github.com/Valve/fingerprintjs
 * Copyright (c) 2013 Valentin Vasilyev (valentin.vasilyev@outlook.com)
 * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php) license.
@@ -22,7 +22,7 @@
   else { context[name] = definition(); }
 })('Fingerprint', this, function () {
   'use strict';
-  
+
   var Fingerprint = function (options) {
     var nativeForEach, nativeMap;
     nativeForEach = Array.prototype.forEach;
@@ -62,6 +62,7 @@
     if (typeof options == 'object'){
       this.hasher = options.hasher;
       this.screen_resolution = options.screen_resolution;
+      this.screen_orientation = options.screen_orientation;
       this.canvas = options.canvas;
       this.ie_activex = options.ie_activex;
     } else if(typeof options == 'function'){
@@ -78,13 +79,13 @@
       if (this.screen_resolution) {
         var resolution = this.getScreenResolution();
         if (typeof resolution !== 'undefined'){ // headless browsers, such as phantomjs
-          keys.push(this.getScreenResolution().join('x'));
+          keys.push(resolution.join('x'));
         }
       }
       keys.push(new Date().getTimezoneOffset());
       keys.push(this.hasSessionStorage());
       keys.push(this.hasLocalStorage());
-      keys.push(!!window.indexedDB);
+      keys.push(this.hasIndexDb());
       //body might not be defined at this point or removed programmatically
       if(document.body){
         keys.push(typeof(document.body.addBehavior));
@@ -108,35 +109,35 @@
 
     /**
      * JS Implementation of MurmurHash3 (r136) (as of May 20, 2011)
-     * 
+     *
      * @author <a href="mailto:gary.court@gmail.com">Gary Court</a>
      * @see http://github.com/garycourt/murmurhash-js
      * @author <a href="mailto:aappleby@gmail.com">Austin Appleby</a>
      * @see http://sites.google.com/site/murmurhash/
-     * 
+     *
      * @param {string} key ASCII only
      * @param {number} seed Positive integer only
-     * @return {number} 32-bit positive integer hash 
+     * @return {number} 32-bit positive integer hash
      */
 
     murmurhash3_32_gc: function(key, seed) {
       var remainder, bytes, h1, h1b, c1, c2, k1, i;
-      
+
       remainder = key.length & 3; // key.length % 4
       bytes = key.length - remainder;
       h1 = seed;
       c1 = 0xcc9e2d51;
       c2 = 0x1b873593;
       i = 0;
-      
+
       while (i < bytes) {
-          k1 = 
+          k1 =
             ((key.charCodeAt(i) & 0xff)) |
             ((key.charCodeAt(++i) & 0xff) << 8) |
             ((key.charCodeAt(++i) & 0xff) << 16) |
             ((key.charCodeAt(++i) & 0xff) << 24);
         ++i;
-        
+
         k1 = ((((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16))) & 0xffffffff;
         k1 = (k1 << 15) | (k1 >>> 17);
         k1 = ((((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16))) & 0xffffffff;
@@ -146,20 +147,20 @@
         h1b = ((((h1 & 0xffff) * 5) + ((((h1 >>> 16) * 5) & 0xffff) << 16))) & 0xffffffff;
         h1 = (((h1b & 0xffff) + 0x6b64) + ((((h1b >>> 16) + 0xe654) & 0xffff) << 16));
       }
-      
+
       k1 = 0;
-      
+
       switch (remainder) {
         case 3: k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
         case 2: k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
         case 1: k1 ^= (key.charCodeAt(i) & 0xff);
-        
+
         k1 = (((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
         k1 = (k1 << 15) | (k1 >>> 17);
         k1 = (((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
         h1 ^= k1;
       }
-      
+
       h1 ^= key.length;
 
       h1 ^= h1 >>> 16;
@@ -179,10 +180,18 @@
         return true; // SecurityError when referencing it means it exists
       }
     },
-    
+
     hasSessionStorage: function () {
       try{
         return !!window.sessionStorage;
+      } catch(e) {
+        return true; // SecurityError when referencing it means it exists
+      }
+    },
+
+    hasIndexDb: function () {
+      try{
+        return !!window.indexedDB;
       } catch(e) {
         return true; // SecurityError when referencing it means it exists
       }
@@ -235,7 +244,7 @@
           'WMPlayer.OCX', // Windows media player
           'AgControl.AgControl', // Silverlight
           'Skype.Detection'];
-          
+
         // starting to detect plugins in IE
         return this.map(names, function(name){
           try{
@@ -251,7 +260,13 @@
     },
 
     getScreenResolution: function () {
-      return [screen.height, screen.width];
+      var resolution;
+       if(this.screen_orientation){
+         resolution = (screen.height > screen.width) ? [screen.height, screen.width] : [screen.width, screen.height];
+       }else{
+         resolution = [screen.height, screen.width];
+       }
+       return resolution;
     },
 
     getCanvasFingerprint: function () {
