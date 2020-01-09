@@ -2,7 +2,7 @@
 
 On 26 May 2011 EU introduced a law that requires websites to implement a cookie opt-in mechanism, effectively meaning that the consumer must give his or her consent before cookies or any other form of data is stored in their browser [[1]](https://en.wikipedia.org/wiki/Directive_on_Privacy_and_Electronic_Communications#Cookies). This law especially targets 3rd-party tracking cookies, like those of Google Analytics. As a result, many EU websites nowadays are covered in opt-in or "implied consent" banners, popups and all sorts of nightmares.
 
-However, if your Google Analytics use case only requires visitor tracking for statistical purposes, and not individual targeting, there is an easy and elegant solution to not use cookies and get rid of the nasty popups. This cookieless implementation of Google Analytics was created by [Foture](https://www.foture.net) and is using fingerprinting algorithm created by Valve in [Fingerprintjs](https://github.com/Valve/fingerprintjs).
+However, if your Google Analytics use case only requires visitor tracking for statistical purposes, and not individual targeting, there is an easy and elegant solution to not use cookies and get rid of the nasty popups. This cookieless implementation of Google Analytics was created by Marek Foss and is using fingerprinting algorithm created by Valve in [Fingerprintjs](https://github.com/Valve/fingerprintjs).
 
 ## What is fingerprinting?
 
@@ -50,13 +50,6 @@ Update your Google Analytics (GA) code:
 In the above code, you need to update it using your Tracking ID `UA-XXXXXXX-XX` from your GA property settings.
 
 So what's going on here? First, we instruct GA to not use cookies, by setting `storage` to `none`. Next, we create a unique visitor fingerprint as the `clientId`. Additionally, we are instructing Google to anonymise visitors IP address using the `anonymizeIp` option. Finally, we send a pageview to GA.
-
-If you use this implementation on your site, please let us know! We are looking for people who are willing to test it and compare with their previous GA stats in order to check the accuracy of measurements.
-
-We are successfully using this Cookieless Google Analytics on our websites:
-+ [BrightFuture.pl](https://www.brightfuture.pl)
-+ [Foture.net](https://www.foture.net)
-
 
 ### Licence
 
