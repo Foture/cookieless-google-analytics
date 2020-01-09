@@ -55,7 +55,7 @@ So what's going on here? First, we instruct GA to not use cookies, by setting `s
 
 Cookieless implementation of Google Analytics using Fingerprintjs is [MIT][mit] licenced:
 
-Copyright (c) 2014 Foture.net
+Copyright (c) 2014 Marek Foss
 
 Original Fingerprintjs code is [MIT][mit] licenced:
 
